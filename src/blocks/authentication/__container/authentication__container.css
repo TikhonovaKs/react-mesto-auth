@@ -1,0 +1,13 @@
+.authentication__container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+}
+
+/* @media screen and (max-width: 640px) {
+  .authentication__container {
+    width: 282px;
+  }
+} */
