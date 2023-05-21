@@ -7,8 +7,7 @@ export const register = (password, email) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ password, email }),
-  })
-    .then(res => res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`));
+  }).then((res) => (res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`)));
 };
 
 export const login = (password, email) => {
@@ -18,8 +17,7 @@ export const login = (password, email) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ password, email }),
-  })
-    .then(res => res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`));
+  }).then((res) => (res.ok ? res.json() : Promise.reject(`Ошибка: ${res.status}`)));
 };
 
 export const checkToken = (token) => {
@@ -27,9 +25,9 @@ export const checkToken = (token) => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   })
-    .then(res => res.json())
-    .then(data => data);
+    .then((res) => res.json())
+    .then((data) => data);
 };
