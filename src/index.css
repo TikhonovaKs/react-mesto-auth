@@ -46,3 +46,9 @@
 @import url(../src/blocks/authentication/__input/authentication__input.css);
 @import url(../src/blocks/authentication/__title/authentication__title.css);
 @import url(../src/blocks/authentication/authentication.css);
+@import url(../src/blocks/header/__button-authentication/header__button-authentication.css);
+@import url(../src/blocks/header/__button-title/header__button-title.css);
+@import url(../src/blocks/header/__email/header__email.css);
+@import url(../src/blocks/popup/__tooltip-logo/popup__tooltip-logo.css);
+@import url(../src/blocks/popup/__tooltip-title/popup__tooltip-title.css);
+@import url(../src/blocks/header/__login-info/header__login-info.css);

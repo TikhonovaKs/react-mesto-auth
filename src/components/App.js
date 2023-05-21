@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
 import Header from './Header';
@@ -11,7 +11,10 @@ import EditProfilePopup from './EditProfilePopup';
 import EditAvatarPopup from './EditAvatarPopup';
 import AddPlacePopup from './AddPlacePopup';
 import Register from './Register';
+import Login from './Login';
+import InfoTooltip from './InfoTooltip';
 import { ProtectedRoute } from './ProtectedRoute';
+import * as auth from '../utils/auth.js';
 
 function App() {
   // Стейт, отвечающий за данные текущего пользователя
@@ -28,6 +31,13 @@ function App() {
   const [selectedCard, setSelectedCard] = React.useState(null);
   // объявление состояния вошел ли пользователь в систему:
   const [loggedIn, setLoggedIn] = React.useState(false);
+  // объявление состояния userData с начальным значением { email: '', password: '' }.
+  // Для сохренения данных логина и email в профайле:
+  const [userData, setUserData] = React.useState({ email: '' });
+  //switch state for InfoTooltip:
+  const [isInfoTooltipPopupOpen, setIsInfoTooltipPopupOpen] = React.useState(false);
+  //switch state for Register:
+  const [isRegister, setIsRegister] = React.useState(false);
 
   //эффект обращения к API за инфо о пользователе и начальными карточками:
   React.useEffect(() => {
@@ -75,6 +85,7 @@ function App() {
     setIsAddPlacePopupOpen(false);
     setIsEditAvatarPopupOpen(false);
     setSelectedCard(null);
+    setIsInfoTooltipPopupOpen(false);
   }
 
   function handleCardDelete(cardId) {
@@ -167,36 +178,110 @@ function App() {
       .catch((err) => console.log(err));
   }
 
+  //  проверяем наличие токена в локальном хранилище:
+  const checkToken = () => {
+    const jwt = localStorage.getItem('jwt');
+    if (jwt) {
+      auth
+        .checkToken(jwt)
+        .then((user) => {
+          setLoggedUserData(user.data.email, '/main');
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+  React.useEffect(() => {
+    checkToken();
+  }, []);
+
+  // вызываем useNavigate() (переход на другие страницы) и useLocation() (информация о текущем маршруте):
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // обрабатчик входа пользователя в систему (передаем в Login):
+  const handleLogin = ({ password, email }) => {
+    // обращаемся к API для аутентификации пользователя:
+    auth
+      .login(password, email)
+      // обрабатываем успешное выполнение промиса, получив данные из ответа API в data.
+      .then((data) => {
+        // Проверяем, есть ли у полученных данных токен (data.token).
+        if (data.token) {
+          // Если токен существует, сохраняем токен в локальном хранилище:
+          localStorage.setItem('jwt', data.token);
+          // Устанавливаем значение loggedIn в true:
+          // создаем переменную url, в которую записывается значение location.state?.backUrl или '/main' (если backUrl отсутствует):
+          const url = location.state?.backUrl || '/main';
+          setLoggedUserData(email, url);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  function setLoggedUserData(email, url) {
+    setLoggedIn(true);
+    // обновляем данные пользователя для отображения в шапке профиля:
+    setUserData({ email });
+
+    // переходим на нужный url:
+    navigate(url);
+  }
+  function handleSignout() {
+    localStorage.removeItem('jwt');
+    // Устанавливаем значение loggedIn в false:
+    setLoggedIn(false);
+    // удаляем данные пользователя для отображения в шапке профиля:
+    setUserData(null);
+  }
+
+  // Обработчик регистрации пользователя:
+  const handleRegister = ({ password, email }) => {
+    auth
+      .register(password, email)
+      .then((data) => {
+        setIsRegister(true);
+        setIsInfoTooltipPopupOpen(true);
+        navigate('/sign-in');
+      })
+      .catch((err) => {
+        setIsRegister(false);
+        setIsInfoTooltipPopupOpen(true);
+        console.log(err);
+      });
+  };
+
   return (
     <CurrentUserContext.Provider value={currentUser}>
       {/* Внедряем» данные из currentUser с помощью провайдера контекста */}
       <div className="App">
-        <Header />
-        
+        <Header isLoggedIn={loggedIn} userData={userData} handleSignout={handleSignout} />
         <Routes>
+          <Route path="/sign-up" element={<Register handleRegister={handleRegister} />} />
+          <Route path="/sign-in" element={<Login handleLogin={handleLogin} />} />
           <Route
-            path="/sign-up"
+            exact
+            path="/main"
             element={
-              //<div className="registerContainer">
-              <Register />
-              //</div>
+              <ProtectedRoute
+                isLoggedIn={loggedIn}
+                element={
+                  <Main
+                    onEditProfile={handleEditProfileClick}
+                    onAddPlace={handleAddPlaceClick}
+                    onEditAvatar={handleEditAvatarClick}
+                    onCardClick={handleCardClick}
+                    onCardDelete={handleCardDelete}
+                    onCardLike={handleCardLike}
+                    onCardDislike={handleCardDisLike}
+                    cards={cards}
+                  ></Main>
+                }
+              />
             }
-          />
-          <Route path='/' element={
-            <Main
-            onEditProfile={handleEditProfileClick}
-            onAddPlace={handleAddPlaceClick}
-            onEditAvatar={handleEditAvatarClick}
-            onCardClick={handleCardClick}
-            onCardDelete={handleCardDelete}
-            onCardLike={handleCardLike}
-            onCardDislike={handleCardDisLike}
-            cards={cards}
-          />
-          }>
-
-          </Route>
+          ></Route>
         </Routes>
+        <InfoTooltip isOpen={isInfoTooltipPopupOpen} onClose={closeAllPopups} isRegister={isRegister} />
         <ImagePopup card={selectedCard} onClose={closeAllPopups} />
         <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
         <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlace} />

@@ -8,6 +8,7 @@
   line-height: 17px;
   border-bottom: 2px solid rgba(204, 204, 204, 1);
   background-color: rgba(0, 0, 0, 0);
+  color: rgba(204, 204, 204, 1);
 }
 
 .authentication__input:last-of-type {
