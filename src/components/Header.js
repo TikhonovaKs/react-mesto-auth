@@ -11,11 +11,9 @@ function Header({ isLoggedIn, userData, handleSignout }) {
   if (isLoggedIn) {
     showEmail = <h2 className="header__email">{userData.email}</h2>;
     loginControl = (
-      <>
         <Link to="/sign-in" className="header__button-title" onClick={handleSignout}>
           Выйти
         </Link>
-      </>
     );
   } else {
     if (isOnSignInPage)
