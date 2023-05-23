@@ -241,13 +241,14 @@ function App() {
       .register(password, email)
       .then((data) => {
         setIsRegister(true);
-        setIsInfoTooltipPopupOpen(true);
         navigate('/sign-in');
       })
       .catch((err) => {
         setIsRegister(false);
-        setIsInfoTooltipPopupOpen(true);
         console.log(err);
+      })
+      .finally(() => {
+        setIsInfoTooltipPopupOpen(true)
       });
   };
 
